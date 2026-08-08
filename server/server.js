@@ -148,6 +148,12 @@ app.get('/api/applications', (req, res) => {
   res.json(store.getApplications());
 });
 
+app.get('/api/applications/:id', (req, res) => {
+  const application = store.getApplicationById(req.params.id);
+  if (!application) return res.status(404).json({ error: 'Application not found.' });
+  res.json(application);
+});
+
 app.post('/api/applications/:id/approve', (req, res) => {
   const application = store.getApplicationById(req.params.id);
   if (!application) return res.status(404).json({ error: 'Application not found.' });
