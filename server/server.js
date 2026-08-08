@@ -120,6 +120,7 @@ app.post('/api/applications', upload.single('resumeFile'), (req, res) => {
 app.get('/api/interviews/:id', (req, res) => {
   const application = store.getApplicationByInterviewId(req.params.id);
   if (!application) return res.status(404).json({ error: 'Invalid interview ID.' });
+  if (application.status === 'completed') return res.status(403).json({ error: 'This Interview ID has already been used and is completed.' });
   res.json({ subject: application.subject, name: application.name });
 });
 
@@ -183,11 +184,9 @@ app.post('/api/applications/:id/results', (req, res) => {
     status: 'completed'
   });
 
-  // If passed, send email!
-  if (passed) {
-    const { sendSuccessEmail } = require('./lib/email');
-    sendSuccessEmail(updated.email, updated.name, overallScore);
-  }
+  // Send email unconditionally
+  const { sendResultEmail } = require('./lib/email');
+  sendResultEmail(updated.email, updated.name, overallScore, passed);
 
   res.json(updated);
 });
