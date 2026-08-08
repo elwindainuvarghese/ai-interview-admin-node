@@ -889,6 +889,7 @@ function renderApplications(apps) {
     el.className = 'answer-card';
     
     let actionHtml = '';
+    let resultsHtml = '';
     if (app.status === 'pending') {
       actionHtml = `<button class="btn btn-primary" onclick="approveApp(${app.id})">Approve & Generate ID</button>`;
     } else if (app.status === 'approved') {
@@ -897,6 +898,33 @@ function renderApplications(apps) {
           ID: ${app.interviewId}
         </div>
       `;
+    } else if (app.status === 'completed') {
+      actionHtml = `
+        <div style="background:${app.passed ? 'rgba(29,185,106,0.1)' : 'rgba(240,90,110,0.1)'}; border:1px solid ${app.passed ? 'rgba(29,185,106,0.3)' : 'rgba(240,90,110,0.3)'}; color:${app.passed ? 'var(--teal)' : 'var(--coral)'}; padding:8px 16px; border-radius:8px; font-weight:bold; display:inline-block; font-family:var(--mono);">
+          ${app.passed ? 'PASSED' : 'FAILED'} - SCORE: ${app.finalScore}
+        </div>
+      `;
+      if (app.feedback) {
+         resultsHtml = `
+         <div style="margin-top:16px; padding:16px; background:rgba(0,0,0,0.2); border-radius:8px; border:1px solid var(--border);">
+            <h4 style="margin:0 0 8px 0; color:#fff;">AI Diagnostic Report</h4>
+            <p style="font-size:13px; color:var(--muted); line-height:1.5; margin-bottom:12px;">${escapeHtml(app.feedback.summary)}</p>
+            <div style="display:flex; gap:16px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:200px;">
+                    <strong style="color:var(--teal); font-size:12px;">Strengths:</strong>
+                    <ul style="margin:4px 0 0; padding-left:16px; font-size:12px; color:var(--muted);">
+                        ${(app.feedback.strengths||[]).map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+                    </ul>
+                </div>
+                <div style="flex:1; min-width:200px;">
+                    <strong style="color:var(--coral); font-size:12px;">Gaps:</strong>
+                    <ul style="margin:4px 0 0; padding-left:16px; font-size:12px; color:var(--muted);">
+                        ${(app.feedback.gaps||[]).map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+                    </ul>
+                </div>
+            </div>
+         </div>`;
+      }
     }
 
     const nameStr = escapeHtml(app.name) + (app.lastName ? ' ' + escapeHtml(app.lastName) : '');
@@ -926,6 +954,7 @@ function renderApplications(apps) {
         </div>
         ${resumeLink}
       </div>
+      ${resultsHtml}
     `;
     container.appendChild(el);
   });

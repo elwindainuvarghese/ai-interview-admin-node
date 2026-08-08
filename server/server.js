@@ -123,10 +123,18 @@ app.get('/api/interviews/:id', (req, res) => {
   res.json({ subject: application.subject, name: application.name });
 });
 
-// Everything below this line requires a valid session token.
-app.use('/api/questions', requireAuth);
+// Allow public access to GET /api/questions so candidate frontend can fetch them
+app.use('/api/questions', (req, res, next) => {
+  if (req.method === 'GET') return next();
+  return requireAuth(req, res, next);
+});
 app.use('/api/answers', requireAuth);
 app.use('/api/applications', (req, res, next) => {
+  // Public routes for applications
+  if (req.method === 'POST' && req.url === '/') return next(); // creation
+  if (req.method === 'GET' && req.url.match(/^\/[^/]+$/)) return next(); // get by id (if handled above)
+  if (req.method === 'POST' && req.url.includes('/results')) return next(); // post results from frontend
+  
   if (req.method === 'GET' || req.method === 'POST' && req.url.includes('/approve')) {
     return requireAuth(req, res, next);
   }
@@ -156,6 +164,30 @@ app.post('/api/applications/:id/approve', (req, res) => {
     status: 'approved',
     interviewId,
   });
+
+  res.json(updated);
+});
+
+// Candidate: submit final interview results (AI score and feedback)
+app.post('/api/applications/:id/results', (req, res) => {
+  const application = store.getApplicationByInterviewId(req.params.id);
+  if (!application) return res.status(404).json({ error: 'Invalid interview ID.' });
+
+  const { overallScore, feedback, transcript, passed } = req.body;
+  
+  const updated = store.updateApplication(application.id, {
+    finalScore: overallScore,
+    feedback: feedback,
+    transcript: transcript,
+    passed: passed,
+    status: 'completed'
+  });
+
+  // If passed, send email!
+  if (passed) {
+    const { sendSuccessEmail } = require('./lib/email');
+    sendSuccessEmail(updated.email, updated.name, overallScore);
+  }
 
   res.json(updated);
 });
