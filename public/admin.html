@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>Interview Agent — Admin</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  :root{
+    --bg:#080c10;
+    --panel:rgba(12,19,15,0.9);
+    --panel-raised:rgba(18,28,22,0.95);
+    --border:rgba(29,185,106,0.12);
+    --border-strong:rgba(29,185,106,0.25);
+    --text:#dff0e8;
+    --muted:#5a7065;
+    --green:#1db96a;
+    --green-soft:rgba(29,185,106,0.1);
+    --teal:#00e5a0;
+    --coral:#f05a6e;
+    --amber:#f5c842;
+    --mono: 'SFMono-Regular', Consolas, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --sidebar-w:240px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg);
+    background-image:
+      radial-gradient(ellipse 70% 50% at 15% 0%, rgba(29,185,106,0.1) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 85% 90%, rgba(0,229,160,0.06) 0%, transparent 55%);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+  }
+  .shell{
+    display:grid;
+    grid-template-columns:var(--sidebar-w) 1fr;
+    min-height:100vh;
+  }
+
+  /* ---- SIDEBAR ---- */
+  .sidebar{
+    background:rgba(8,14,11,0.95);
+    border-right:1px solid var(--border);
+    padding:28px 16px;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
+  .sidebar::after{
+    content:'';
+    position:absolute;
+    top:0; right:-1px; bottom:0;
+    width:1px;
+    background:linear-gradient(180deg,rgba(29,185,106,0.4),rgba(29,185,106,0.05) 60%,transparent);
+  }
+  .brand-logo{
+    width:36px; height:36px;
+    background:linear-gradient(135deg,rgba(29,185,106,0.25),rgba(0,229,160,0.1));
+    border:1px solid rgba(29,185,106,0.3);
+    border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px;
+    margin-bottom:12px;
+  }
+  .brand{
+    font-size:15px;
+    font-weight:800;
+    letter-spacing:-0.02em;
+    color:#fff;
+    margin-bottom:2px;
+  }
+  .brand-sub{
+    font-size:10px;
+    color:var(--muted);
+    margin-bottom:28px;
+    font-family:var(--mono);
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+  }
+  .nav-btn{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    padding:10px 12px;
+    border-radius:10px;
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    font-family:var(--sans);
+    font-size:13px;
+    font-weight:500;
+    text-align:left;
+    cursor:pointer;
+    margin-bottom:2px;
+    transition:background .15s, color .15s;
+    position:relative;
+  }
+  .nav-btn:hover{background:var(--green-soft); color:var(--text);}
+  .nav-btn.active{
+    background:rgba(29,185,106,0.15);
+    color:var(--teal);
+    font-weight:600;
+  }
+  .nav-btn.active::before{
+    content:'';
+    position:absolute;
+    left:0; top:20%; bottom:20%;
+    width:3px;
+    background:var(--green);
+    border-radius:0 3px 3px 0;
+  }
+  .nav-count{
+    margin-left:auto;
+    font-family:var(--mono);
+    font-size:10px;
+    color:var(--green);
+    background:rgba(29,185,106,0.12);
+    padding:2px 7px;
+    border-radius:10px;
+    border:1px solid rgba(29,185,106,0.2);
+  }
+  #logout-btn{
+    margin-top:auto !important;
+    color:var(--coral) !important;
+  }
+  #logout-btn:hover{background:rgba(240,90,110,0.08) !important; color:#ff7a8a !important;}
+
+  /* ---- MAIN ---- */
+  main{padding:36px 44px; max-width:1020px;}
+  h1{font-size:24px; font-weight:800; letter-spacing:-0.02em; margin:0 0 4px; color:#fff;}
+  .lede{color:var(--muted); font-size:14px; margin:0 0 28px; line-height:1.5;}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* ---- CARDS ---- */
+  .answer-card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:22px;
+    margin-bottom:14px;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  .answer-card:hover{border-color:var(--border-strong); box-shadow:0 4px 24px rgba(0,0,0,0.4);}
+  .answer-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    margin-bottom:14px;
+  }
+  .candidate{font-weight:700; font-size:14px; color:#fff;}
+  .question-ref{color:var(--muted); font-size:13px; margin-top:3px;}
+  .status-badge{
+    font-family:var(--mono);
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    padding:4px 10px;
+    border-radius:20px;
+    white-space:nowrap;
+    font-weight:600;
+  }
+  .status-pending{background:rgba(245,200,66,0.1); color:var(--amber); border:1px solid rgba(245,200,66,0.2);}
+  .status-ai_scored{background:rgba(29,185,106,0.1); color:var(--teal); border:1px solid rgba(29,185,106,0.2);}
+  .status-reviewed{background:rgba(0,229,160,0.1); color:var(--teal); border:1px solid rgba(0,229,160,0.25);}
+  .answer-text{
+    font-size:14px;
+    line-height:1.6;
+    color:#9ab8a5;
+    background:rgba(5,10,8,0.6);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 16px;
+    margin-bottom:14px;
+  }
+  .score-row{display:flex; align-items:center; gap:14px; margin-bottom:12px;}
+  .score-pill{
+    font-family:var(--mono);
+    font-weight:800;
+    font-size:20px;
+    padding:4px 14px;
+    border-radius:10px;
+    background:rgba(29,185,106,0.12);
+    color:var(--teal);
+    border:1px solid rgba(29,185,106,0.2);
+  }
+  .score-pill.na{color:var(--muted); font-size:13px; font-weight:500; background:var(--panel-raised); border-color:var(--border);}
+  .feedback-block{font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:12px;}
+  .feedback-block b{color:var(--text);}
+  .tag-list{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+  .tag{
+    font-size:11px;
+    padding:3px 10px;
+    border-radius:20px;
+    background:rgba(29,185,106,0.06);
+    color:var(--muted);
+    border:1px solid var(--border);
+  }
+  .tag.gap{color:var(--coral); border-color:rgba(240,90,110,0.2); background:rgba(240,90,110,0.06);}
+  .tag.strength{color:var(--teal); border-color:rgba(0,229,160,0.2); background:rgba(0,229,160,0.06);}
+  .review-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+    padding-top:14px;
+    border-top:1px solid var(--border);
+  }
+
+  /* ---- INPUTS ---- */
+  input[type=number]{width:70px;}
+  input, textarea, select{
+    background:rgba(5,10,8,0.7);
+    border:1px solid var(--border);
+    color:var(--text);
+    border-radius:8px;
+    padding:9px 12px;
+    font-family:var(--sans);
+    font-size:13px;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  input:focus, textarea:focus, select:focus{
+    outline:none;
+    border-color:var(--green);
+    box-shadow:0 0 0 3px rgba(29,185,106,0.1);
+  }
+  textarea{width:100%; resize:vertical; min-height:60px;}
+  select option{background:#0a1209;}
+
+  /* ---- BUTTONS ---- */
+  .btn{
+    font-family:var(--sans);
+    font-size:13px;
+    font-weight:600;
+    padding:8px 16px;
+    border-radius:8px;
+    border:1px solid var(--border-strong);
+    background:var(--panel-raised);
+    color:var(--text);
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .btn:hover{border-color:var(--green); color:var(--teal); background:var(--green-soft);}
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{
+    background:linear-gradient(135deg,#1db96a,#00c87d);
+    border:none;
+    color:#fff;
+    box-shadow:0 3px 16px rgba(29,185,106,0.25);
+  }
+  .btn-primary:hover{box-shadow:0 4px 24px rgba(29,185,106,0.4); color:#fff; border:none; background:linear-gradient(135deg,#22d476,#00e08a);}
+  .btn-ghost{background:transparent; border-color:transparent;}
+  .btn-ghost:hover{background:var(--green-soft);}
+  .btn:disabled{opacity:0.4; cursor:not-allowed; transform:none;}
+  .btn-danger{color:var(--coral); border-color:rgba(240,90,110,0.3);}
+  .btn-danger:hover{background:rgba(240,90,110,0.1); color:#ff7a8a; border-color:rgba(240,90,110,0.5);}
+
+  /* ---- QUESTIONS VIEW ---- */
+  .qform{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:22px;
+    margin-bottom:28px;
+  }
+  .qform-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-bottom:14px;
+  }
+  .qform-grid label, .field label{
+    display:block;
+    font-size:11px;
+    font-weight:600;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:6px;
+  }
+  .field{margin-bottom:14px;}
+  .field input, .field select{width:100%;}
+  .question-row{
+    display:flex;
+    justify-content:space-between;
+    gap:16px;
+    align-items:flex-start;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px 18px;
+    margin-bottom:10px;
+    transition:border-color .2s;
+  }
+  .question-row:hover{border-color:var(--border-strong);}
+  .q-text{font-size:14px; font-weight:600; margin-bottom:4px; color:#c5e8d3;}
+  .q-meta{font-size:11px; color:var(--muted); font-family:var(--mono); letter-spacing:0.04em;}
+  .q-ideal{font-size:12px; color:var(--muted); margin-top:8px; line-height:1.6;}
+  .empty{color:var(--muted); font-size:14px; padding:60px 0; text-align:center;}
+
+  /* ---- TOAST ---- */
+  .toast{
+    position:fixed; bottom:28px; right:28px;
+    background:rgba(12,20,16,0.95);
+    border:1px solid var(--border-strong);
+    padding:12px 18px; border-radius:12px; font-size:13px;
+    backdrop-filter:blur(12px);
+    box-shadow:0 8px 32px rgba(0,0,0,0.5);
+    opacity:0; transform:translateY(10px); transition:all .25s;
+    pointer-events:none;
+    color:var(--teal);
+  }
+  .toast.show{opacity:1; transform:translateY(0);}
+
+  /* ---- CATEGORY SELECT in sidebar ---- */
+  .sidebar .field label{color:var(--muted);}
+  .sidebar select{
+    background:rgba(5,10,8,0.8);
+    font-size:12px;
+    border-radius:8px;
+    padding:8px 10px;
+  }
+</style>
+
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand-logo">🛡️</div>
+    <div class="brand">Interview Agent</div>
+    <div class="brand-sub">Admin</div>
+
+    <div class="field" style="margin-bottom:20px;">
+      <label for="category-switch">Category</label>
+      <select id="category-switch">
+        <option value="All">All categories</option>
+      </select>
+    </div>
+
+    <button class="nav-btn active" data-view="applications">
+      Applications <span class="nav-count" id="applications-count">0</span>
+    </button>
+    <button class="nav-btn" data-view="answers">
+      Review Answers <span class="nav-count" id="answers-count">0</span>
+    </button>
+    <button class="nav-btn" data-view="questions">
+      Questions <span class="nav-count" id="questions-count">0</span>
+    </button>
+    <button class="nav-btn" id="nav-live" data-view="live" style="position:relative;">
+      <span style="display:flex;align-items:center;gap:8px;width:100%">
+        <span>⬤</span> Live Monitor
+        <span id="live-badge" style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--muted);box-shadow:none;transition:all .3s;"></span>
+      </span>
+    </button>
+
+    <button class="nav-btn" id="logout-btn" style="margin-top:24px; color:var(--coral);">
+      Log out
+    </button>
+  </aside>
+
+  <main>
+    <section class="view active" id="view-applications">
+      <h1>Candidate Applications</h1>
+      <p class="lede">Review candidate registrations, approve applications, and generate unique Interview IDs.</p>
+      <div id="applications-list" style="display:grid; gap:16px;"></div>
+    </section>
+
+    <section class="view" id="view-answers">
+      <h1>Review Answers</h1>
+      <p class="lede">Score candidate answers with AI, then confirm or adjust before finalizing.</p>
+      <div id="answers-list"></div>
+    </section>
+
+    <section class="view" id="view-live">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <h1>Live Interview Monitor</h1>
+        <div id="live-status-badge" style="display:flex;align-items:center;gap:8px;padding:6px 14px;border-radius:20px;background:rgba(90,112,101,0.15);border:1px solid rgba(90,112,101,0.3);font-size:12px;font-weight:600;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;">
+          <span id="pulse-dot" style="width:8px;height:8px;border-radius:50%;background:var(--muted);"></span>
+          <span id="status-text">NO CANDIDATE</span>
+        </div>
+      </div>
+      <p class="lede">Candidate camera feed and AI proctoring telemetry streams here automatically when an interview starts.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;">
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px 20px;">
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">ATTENTION SCORE</div>
+          <div id="live-score" style="font-size:36px;font-weight:800;color:var(--teal);font-family:var(--mono);letter-spacing:-0.02em;">--%</div>
+          <div id="score-bar-wrap" style="height:4px;background:rgba(29,185,106,0.1);border-radius:4px;margin-top:10px;overflow:hidden;">
+            <div id="score-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#1db96a,#00e5a0);border-radius:4px;transition:width .6s ease;"></div>
+          </div>
+        </div>
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px 20px;">
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">GAZE STATUS</div>
+          <div id="live-gaze" style="font-size:18px;font-weight:700;color:var(--text);font-family:var(--mono);">WAITING...</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;">AI Vision tracking</div>
+        </div>
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px 20px;">
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">ALERTS</div>
+          <div id="live-alerts" style="font-size:28px;font-weight:800;color:var(--amber);font-family:var(--mono);">0</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;">violations flagged</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:3fr 1fr;gap:16px;align-items:start;">
+        <div style="position:relative;width:100%;aspect-ratio:4/3;background:#050a07;border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+          <img id="live-video-feed" src="" style="width:100%;height:100%;object-fit:cover;display:none;" />
+          <div id="no-signal" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);font-family:var(--mono);">
+            <div style="font-size:32px;">📡</div>
+            <div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;">Waiting for candidate...</div>
+          </div>
+          <div id="live-overlay-bar" style="display:none;position:absolute;bottom:0;left:0;right:0;padding:10px 14px;background:linear-gradient(transparent,rgba(0,0,0,0.8));display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span id="rec-dot" style="width:8px;height:8px;border-radius:50%;background:#f05a6e;animation:recpulse 1s infinite;"></span>
+              <span style="font-size:11px;font-weight:700;color:#fff;font-family:var(--mono);letter-spacing:0.08em;">LIVE</span>
+            </div>
+            <div id="live-time" style="font-size:11px;color:rgba(255,255,255,0.7);font-family:var(--mono);"></div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;">
+            <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;">QUICK ACTIONS</div>
+            <button id="manual-kill-btn" class="btn btn-danger" style="width:100%;padding:12px;font-size:13px;font-weight:700;margin-bottom:8px;">🛑 Terminate Interview</button>
+            <button id="clear-alerts-btn" class="btn" style="width:100%;padding:10px;font-size:12px;">Clear Alerts</button>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;">
+            <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">EVENT LOG</div>
+            <div id="event-log" style="font-size:11px;color:var(--muted);font-family:var(--mono);max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">
+              <div style="color:var(--muted);">No events yet...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-questions">
+      <h1>Questions</h1>
+      <p class="lede">Add and manage the question bank used in interviews.</p>
+
+      <div class="qform">
+        <div class="field">
+          <label for="q-text">Question</label>
+          <textarea id="q-text" placeholder="e.g. Explain how event delegation works in JavaScript."></textarea>
+        </div>
+        <div class="qform-grid">
+          <div>
+            <label for="q-category">Category</label>
+            <input id="q-category" placeholder="e.g. JavaScript">
+          </div>
+          <div>
+            <label for="q-difficulty">Difficulty</label>
+            <select id="q-difficulty">
+              <option value="easy">Easy</option>
+              <option value="medium" selected>Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="q-ideal">Ideal answer / rubric notes (used by the AI scorer)</label>
+          <textarea id="q-ideal" placeholder="What a strong answer should cover..."></textarea>
+        </div>
+        <button class="btn btn-primary" id="add-question-btn">Add question</button>
+      </div>
+
+      <div id="questions-list"></div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<style>
+@keyframes recpulse {
+  0%,100%{opacity:1} 50%{opacity:0.2}
+}
+@keyframes liveglow {
+  0%,100%{box-shadow:0 0 0 0 rgba(29,185,106,0.6)} 50%{box-shadow:0 0 0 6px rgba(29,185,106,0)}
+}
+</style>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+let alertCount = 0;
+let liveStartTime = null;
+let liveTimerInterval = null;
+let hasReceivedFeed = false;
+
+function addEventLog(msg, type='info') {
+  const log = document.getElementById('event-log');
+  if (log.children.length === 1 && log.children[0].textContent === 'No events yet...') {
+    log.innerHTML = '';
+  }
+  const time = new Date().toLocaleTimeString();
+  const colors = {info:'var(--muted)', warn:'var(--amber)', danger:'var(--coral)', success:'var(--teal)'};
+  const entry = document.createElement('div');
+  entry.style.cssText = `color:${colors[type]||colors.info};border-bottom:1px solid var(--border);padding-bottom:4px;`;
+  entry.textContent = `[${time}] ${msg}`;
+  log.insertBefore(entry, log.firstChild);
+  if (log.children.length > 30) log.removeChild(log.lastChild);
+}
+
+function setLiveActive(active) {
+  const badge = document.getElementById('live-badge');
+  const pulseDot = document.getElementById('pulse-dot');
+  const statusText = document.getElementById('status-text');
+  const statusBadge = document.getElementById('live-status-badge');
+  const overlayBar = document.getElementById('live-overlay-bar');
+
+  if (active) {
+    badge.style.background = '#1db96a';
+    badge.style.boxShadow = '0 0 8px #1db96a';
+    badge.style.animation = 'recpulse 1s infinite';
+    pulseDot.style.background = '#1db96a';
+    pulseDot.style.animation = 'liveglow 1.5s infinite';
+    statusText.textContent = 'LIVE';
+    statusBadge.style.background = 'rgba(29,185,106,0.12)';
+    statusBadge.style.borderColor = 'rgba(29,185,106,0.35)';
+    statusBadge.style.color = 'var(--teal)';
+    if (overlayBar) overlayBar.style.display = 'flex';
+    if (!liveStartTime) {
+      liveStartTime = Date.now();
+      liveTimerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - liveStartTime) / 1000);
+        const m = Math.floor(elapsed/60).toString().padStart(2,'0');
+        const s = (elapsed%60).toString().padStart(2,'0');
+        const el = document.getElementById('live-time');
+        if (el) el.textContent = `${m}:${s}`;
+      }, 1000);
+    }
+  } else {
+    badge.style.background = 'var(--muted)';
+    badge.style.boxShadow = 'none';
+    badge.style.animation = 'none';
+    pulseDot.style.background = 'var(--muted)';
+    pulseDot.style.animation = 'none';
+    statusText.textContent = 'NO CANDIDATE';
+    statusBadge.style.background = 'rgba(90,112,101,0.15)';
+    statusBadge.style.borderColor = 'rgba(90,112,101,0.3)';
+    statusBadge.style.color = 'var(--muted)';
+    if (overlayBar) overlayBar.style.display = 'none';
+    clearInterval(liveTimerInterval);
+    liveStartTime = null;
+  }
+}
+
+socket.on('admin_feed_update', (data) => {
+  const img = document.getElementById('live-video-feed');
+  const noSignal = document.getElementById('no-signal');
+
+  if (data.frameBase64) {
+    img.src = data.frameBase64;
+    img.style.display = 'block';
+    noSignal.style.display = 'none';
+
+    // Auto-switch to live view when interview starts
+    if (!hasReceivedFeed) {
+      hasReceivedFeed = true;
+      setLiveActive(true);
+      addEventLog('Interview session started - live feed active', 'success');
+      // Auto-navigate to live monitor tab
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById('nav-live').classList.add('active');
+      document.getElementById('view-live').classList.add('active');
+    }
+  }
+
+  // Update attention score
+  const score = data.attentionScore;
+  const scoreEl = document.getElementById('live-score');
+  const scoreBar = document.getElementById('score-bar');
+  scoreEl.textContent = score + '%';
+  if (scoreBar) scoreBar.style.width = score + '%';
+  if (data.phoneDetected || score < 50) {
+    scoreEl.style.color = 'var(--coral)';
+    if (scoreBar) scoreBar.style.background = 'linear-gradient(90deg,#f05a6e,#ff8a9a)';
+  } else if (score < 75) {
+    scoreEl.style.color = 'var(--amber)';
+    if (scoreBar) scoreBar.style.background = 'linear-gradient(90deg,#f5c842,#ffd96a)';
+  } else {
+    scoreEl.style.color = 'var(--teal)';
+    if (scoreBar) scoreBar.style.background = 'linear-gradient(90deg,#1db96a,#00e5a0)';
+  }
+
+  // Update gaze
+  const gazeEl = document.getElementById('live-gaze');
+  if (gazeEl) {
+    gazeEl.textContent = data.phoneDetected ? '🚨 PHONE DETECTED' : (data.gazeLabel || 'CENTERED');
+    gazeEl.style.color = data.phoneDetected ? 'var(--coral)' : data.gazeLabel === 'CENTERED' ? 'var(--teal)' : 'var(--amber)';
+  }
+
+  // Log alerts
+  if (data.phoneDetected) {
+    alertCount++;
+    document.getElementById('live-alerts').textContent = alertCount;
+    addEventLog('Phone detected in frame!', 'danger');
+  } else if (score < 50) {
+    alertCount++;
+    document.getElementById('live-alerts').textContent = alertCount;
+    addEventLog(`Low attention: ${score}%`, 'warn');
+  }
+});
+
+document.getElementById('manual-kill-btn').addEventListener('click', () => {
+  if (confirm('Are you sure you want to terminate this interview immediately?')) {
+    socket.emit('manual_kill');
+    addEventLog('Interview manually terminated by admin', 'danger');
+    hasReceivedFeed = false;
+    setLiveActive(false);
+    document.getElementById('live-video-feed').style.display = 'none';
+    document.getElementById('no-signal').style.display = 'flex';
+  }
+});
+
+document.getElementById('clear-alerts-btn').addEventListener('click', () => {
+  alertCount = 0;
+  document.getElementById('live-alerts').textContent = '0';
+  document.getElementById('event-log').innerHTML = '<div style="color:var(--muted);">Cleared.</div>';
+});
+
+
+const API = '';
+
+// ---------- Auth guard ----------
+const token = localStorage.getItem('ia_token');
+if (!token){
+  window.location.href = 'login.html';
+}
+let activeCategory = localStorage.getItem('ia_category') || 'All';
+
+// All calls to protected routes go through this so the token is always
+// attached and an expired session bounces back to the login page.
+async function apiFetch(url, options = {}){
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      'Authorization': `Bearer ${token}`,
+    }
+  });
+  if (res.status === 401){
+    localStorage.removeItem('ia_token');
+    window.location.href = 'login.html';
+    throw new Error('Session expired');
+  }
+  return res;
+}
+
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  try{ await apiFetch(`${API}/api/logout`, { method: 'POST' }); }catch(e){}
+  localStorage.removeItem('ia_token');
+  localStorage.removeItem('ia_category');
+  window.location.href = 'login.html';
+});
+
+async function loadCategorySwitcher(){
+  const select = document.getElementById('category-switch');
+  try{
+    const res = await fetch(`${API}/api/categories`);
+    const categories = await res.json();
+    const defaults = ['HTML', 'Java', 'Python'];
+    const merged = [...new Set([...defaults, ...categories])].sort();
+    merged.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat;
+      select.appendChild(opt);
+    });
+  }catch(e){ /* "All categories" still works as a fallback */ }
+  select.value = activeCategory;
+}
+
+document.getElementById('category-switch').addEventListener('change', (e) => {
+  activeCategory = e.target.value;
+  localStorage.setItem('ia_category', activeCategory);
+  loadAnswers();
+  loadQuestions();
+});
+
+function matchesCategory(itemCategory){
+  return activeCategory === 'All' || (itemCategory || '').toLowerCase() === activeCategory.toLowerCase();
+}
+
+// ---------- Navigation ----------
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-' + btn.dataset.view).classList.add('active');
+  });
+});
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ---------- Answers ----------
+async function loadAnswers(){
+  const res = await apiFetch(`${API}/api/answers`);
+  const all = await res.json();
+  const answers = all.filter(a => matchesCategory(a.question?.category));
+  document.getElementById('answers-count').textContent = answers.filter(a => a.status !== 'reviewed').length;
+  renderAnswers(answers);
+}
+
+function renderAnswers(answers){
+  const list = document.getElementById('answers-list');
+  if (!answers.length){
+    list.innerHTML = '<div class="empty">No answers submitted yet.</div>';
+    return;
+  }
+  list.innerHTML = answers.map(a => {
+    const fb = a.aiFeedback;
+    const strengths = (fb?.strengths || []).map(s => `<span class="tag strength">+ ${escapeHtml(s)}</span>`).join('');
+    const gaps = (fb?.gaps || []).map(g => `<span class="tag gap">− ${escapeHtml(g)}</span>`).join('');
+
+    return `
+    <div class="answer-card" data-id="${a.id}">
+      <div class="answer-head">
+        <div>
+          <div class="candidate">${escapeHtml(a.candidateName)}</div>
+          <div class="question-ref">${a.question ? escapeHtml(a.question.text) : 'Question deleted'}</div>
+        </div>
+        <span class="status-badge status-${a.status}">${a.status.replace('_',' ')}</span>
+      </div>
+
+      <div class="answer-text">${escapeHtml(a.answerText)}</div>
+
+      <div class="score-row">
+        ${a.aiScore !== null && a.aiScore !== undefined
+          ? `<div class="score-pill">${a.aiScore}/10</div>`
+          : `<div class="score-pill na">Not scored yet</div>`}
+        <button class="btn" onclick="runAiScore(${a.id})" ${a.status==='reviewed' ? 'disabled' : ''}>
+          ${a.aiScore !== null ? 'Re-run AI score' : 'Run AI score'}
+        </button>
+      </div>
+
+      ${fb ? `
+        <div class="feedback-block">
+          <b>AI feedback:</b> ${escapeHtml(fb.feedback || '')}
+          <div class="tag-list">${strengths}${gaps}</div>
+        </div>
+      ` : ''}
+
+      <div class="review-row">
+        <label style="font-size:12px;color:var(--muted);">Final score</label>
+        <input type="number" min="0" max="10" id="admin-score-${a.id}" value="${a.adminScore ?? a.aiScore ?? ''}">
+        <input type="text" placeholder="Admin notes (optional)" id="admin-notes-${a.id}" value="${a.adminNotes ? escapeHtml(a.adminNotes) : ''}" style="flex:1; min-width:160px;">
+        <button class="btn btn-primary" onclick="submitReview(${a.id})">
+          ${a.status === 'reviewed' ? 'Update review' : 'Confirm review'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function runAiScore(id){
+  const card = document.querySelector(`.answer-card[data-id="${id}"]`);
+  const btn = card.querySelector('.score-row .btn');
+  btn.disabled = true;
+  btn.textContent = 'Scoring…';
+  try{
+    const res = await apiFetch(`${API}/api/answers/${id}/score`, { method: 'POST' });
+    if (!res.ok){
+      const err = await res.json();
+      throw new Error(err.error || 'Scoring failed');
+    }
+    await loadAnswers();
+    showToast('AI scoring complete');
+  }catch(e){
+    showToast(e.message);
+    btn.disabled = false;
+    btn.textContent = 'Run AI score';
+  }
+}
+
+async function submitReview(id){
+  const score = document.getElementById(`admin-score-${id}`).value;
+  const notes = document.getElementById(`admin-notes-${id}`).value;
+  await apiFetch(`${API}/api/answers/${id}/review`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ adminScore: score === '' ? null : Number(score), adminNotes: notes })
+  });
+  await loadAnswers();
+  showToast('Review saved');
+}
+
+// ---------- Questions ----------
+async function loadQuestions(){
+  const res = await apiFetch(`${API}/api/questions`);
+  const all = await res.json();
+  const questions = all.filter(q => matchesCategory(q.category));
+  document.getElementById('questions-count').textContent = questions.length;
+  renderQuestions(questions);
+}
+
+function renderQuestions(questions){
+  const list = document.getElementById('questions-list');
+  if (!questions.length){
+    list.innerHTML = '<div class="empty">No questions yet — add one above.</div>';
+    return;
+  }
+  list.innerHTML = questions.map(q => `
+    <div class="question-row">
+      <div>
+        <div class="q-text">${escapeHtml(q.text)}</div>
+        <div class="q-meta">${escapeHtml(q.category)} · ${q.difficulty}</div>
+        ${q.idealAnswer ? `<div class="q-ideal">${escapeHtml(q.idealAnswer)}</div>` : ''}
+      </div>
+      <button class="btn btn-ghost btn-danger" onclick="deleteQuestion(${q.id})">Delete</button>
+    </div>
+  `).join('');
+}
+
+document.getElementById('add-question-btn').addEventListener('click', async () => {
+  const text = document.getElementById('q-text').value.trim();
+  const category = document.getElementById('q-category').value.trim();
+  const difficulty = document.getElementById('q-difficulty').value;
+  const idealAnswer = document.getElementById('q-ideal').value.trim();
+  if (!text){ showToast('Question text is required'); return; }
+
+  await apiFetch(`${API}/api/questions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, category, difficulty, idealAnswer })
+  });
+
+  document.getElementById('q-text').value = '';
+  document.getElementById('q-category').value = '';
+  document.getElementById('q-ideal').value = '';
+  await loadQuestions();
+  showToast('Question added');
+});
+
+async function deleteQuestion(id){
+  if (!confirm('Delete this question?')) return;
+  await apiFetch(`${API}/api/questions/${id}`, { method: 'DELETE' });
+  await loadQuestions();
+  showToast('Question deleted');
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+// ---------- Applications Logic ----------
+
+async function loadApplications() {
+  const res = await apiFetch(`${API}/api/applications`);
+  const apps = await res.json();
+  document.getElementById('applications-count').textContent = apps.filter(a => a.status === 'pending').length;
+  renderApplications(apps);
+}
+
+function renderApplications(apps) {
+  const container = document.getElementById('applications-list');
+  container.innerHTML = '';
+
+  if (apps.length === 0) {
+    container.innerHTML = `<div class="empty">No applications found.</div>`;
+    return;
+  }
+
+  // Sort: pending first, then by date descending
+  apps.sort((a, b) => {
+    if (a.status === 'pending' && b.status !== 'pending') return -1;
+    if (a.status !== 'pending' && b.status === 'pending') return 1;
+    return new Date(b.submittedAt) - new Date(a.submittedAt);
+  });
+
+  apps.forEach(app => {
+    const el = document.createElement('div');
+    el.className = 'answer-card';
+    
+    let actionHtml = '';
+    if (app.status === 'pending') {
+      actionHtml = `<button class="btn btn-primary" onclick="approveApp(${app.id})">Approve & Generate ID</button>`;
+    } else if (app.status === 'approved') {
+      actionHtml = `
+        <div style="background:rgba(29,185,106,0.1); border:1px solid rgba(29,185,106,0.3); color:var(--teal); padding:8px 16px; border-radius:8px; font-weight:bold; display:inline-block; font-family:var(--mono);">
+          ID: ${app.interviewId}
+        </div>
+      `;
+    }
+
+    const nameStr = escapeHtml(app.name) + (app.lastName ? ' ' + escapeHtml(app.lastName) : '');
+    const metaDetails = [
+      app.city ? `🏙️ ${escapeHtml(app.city)}` : null,
+      app.phone ? `📞 ${escapeHtml(app.phone)}` : null,
+      app.gender ? (app.gender === 'Female' ? '👩🏻‍💼 Female' : app.gender === 'Male' ? '👨🏻‍💼 Male' : '⭐ Others') : null,
+      app.type ? `💼 ${escapeHtml(app.type)}` : null,
+    ].filter(Boolean).join(' &nbsp;|&nbsp; ');
+
+    const resumeLink = app.resumeUrl 
+      ? `<a href="${API}${app.resumeUrl}" target="_blank" style="display:inline-block; margin-top:8px; padding:6px 12px; background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.3); border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold;">📄 View Uploaded Resume</a>`
+      : `<div style="margin-top:8px; font-size:12px; color:var(--muted);">No resume uploaded.</div>`;
+
+    el.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+        <div>
+          <h3 style="margin:0 0 4px 0; color:#fff; font-size:18px;">${nameStr}</h3>
+          <div style="color:var(--muted); font-size:14px; margin-bottom:8px;">${escapeHtml(app.email)}</div>
+          <div class="badge" style="background:var(--panel); border:1px solid var(--border); color:var(--text);">${escapeHtml(app.subject)}</div>
+        </div>
+        <div>${actionHtml}</div>
+      </div>
+      <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+        <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">
+          ${metaDetails || 'No additional details provided.'}
+        </div>
+        ${resumeLink}
+      </div>
+    `;
+    container.appendChild(el);
+  });
+}
+
+async function approveApp(id) {
+  try {
+    const res = await apiFetch(`${API}/api/applications/${id}/approve`, { method: 'POST' });
+    if (res.ok) {
+      showToast('Application approved. Interview ID generated.');
+      await loadApplications();
+    } else {
+      const data = await res.json();
+      showToast(data.error || 'Failed to approve application', 'error');
+    }
+  } catch (err) {
+    showToast('Failed to approve application', 'error');
+  }
+}
+
+// ---------- Init ----------
+loadCategorySwitcher();
+loadAnswers();
+loadQuestions();
+loadApplications();
+if (activeCategory !== 'All'){
+  document.getElementById('q-category').value = activeCategory;
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "name": "interview-agent-server",
+  "version": "1.0.0",
+  "description": "Backend for Interview Agent admin panel — manage questions, review candidate answers, AI auto-scoring",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "socket.io": "^4.8.3"
+  }
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "text": "What is the difference between == and === in JavaScript?",
+    "category": "JavaScript",
+    "idealAnswer": "== does type coercion before comparing, === compares value and type without coercion. Prefer === to avoid unexpected coercion bugs.",
+    "difficulty": "easy",
+    "createdAt": "2026-08-01T10:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "text": "Explain the difference between SQL and NoSQL databases, with an example use case for each.",
+    "category": "Databases",
+    "idealAnswer": "SQL: structured, relational, fixed schema, good for complex queries and transactional data (e.g. banking). NoSQL: flexible schema, horizontally scalable, good for unstructured/rapidly changing data (e.g. product catalogs, logs).",
+    "difficulty": "medium",
+    "createdAt": "2026-08-01T10:00:00.000Z"
+  }
+]

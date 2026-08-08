@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "email": "elwinvarghesed@gmail.com",
+    "subject": "Databases",
+    "resumeText": "",
+    "status": "pending",
+    "interviewId": null,
+    "submittedAt": "2026-08-08T10:01:13.395Z"
+  },
+  {
+    "id": 2,
+    "name": "elwin dainu",
+    "email": "jeffincyril2005@gmail.com",
+    "subject": "Databases",
+    "resumeText": "",
+    "status": "approved",
+    "interviewId": "DA-YKSQAA",
+    "submittedAt": "2026-08-08T10:05:47.828Z"
+  },
+  {
+    "id": 3,
+    "name": "fhjbadsvbj",
+    "lastName": "dsgn",
+    "email": "elwi@gmail.com",
+    "phone": "jkhjkhxczhjkcx ",
+    "city": " jhgghgfh",
+    "gender": "Male",
+    "type": "College student",
+    "subject": "Databases",
+    "resumeText": "",
+    "resumeUrl": "/uploads/resumeFile-1786185076168-746664541.pdf",
+    "status": "approved",
+    "interviewId": "DA-1YXRYU",
+    "submittedAt": "2026-08-08T10:31:16.204Z"
+  }
+]

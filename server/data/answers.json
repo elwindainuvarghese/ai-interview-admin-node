@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "questionId": 1,
+    "candidateName": "Ravi Shah",
+    "answerText": "== checks value only and converts types if they don't match, === checks both value and type strictly. I always use === in my code.",
+    "aiScore": null,
+    "aiFeedback": null,
+    "adminScore": null,
+    "adminNotes": null,
+    "status": "pending",
+    "submittedAt": "2026-08-05T09:30:00.000Z"
+  },
+  {
+    "id": 2,
+    "questionId": 2,
+    "candidateName": "Priya Nair",
+    "answerText": "SQL databases use tables and are good when your data has clear relationships, like an e-commerce order system. NoSQL like MongoDB is schema-less and easier to scale, good for something like a chat app with lots of unstructured messages.",
+    "aiScore": null,
+    "aiFeedback": null,
+    "adminScore": null,
+    "adminNotes": "",
+    "status": "reviewed",
+    "submittedAt": "2026-08-05T09:45:00.000Z"
+  }
+]
